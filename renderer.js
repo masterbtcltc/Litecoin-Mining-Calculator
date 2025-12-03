@@ -27,6 +27,12 @@ function formatUsd(num) {
   });
 }
 
+function formatBreakEvenYears(days) {
+  if (days < 30) return "< 1 month";
+  if (days < 365) return formatNumber(days / 30.42, 1) + " months";
+  return formatNumber(days / 365.25, 2) + " years";
+}
+
 // ----------------------
 // LIVE DATA FETCHERS
 // ----------------------
@@ -154,10 +160,8 @@ function calculateRewards(params) {
   }
 
   let breakEvenDays = NaN;
-  let dailyRoiPercent = NaN;
   if (minerCostUsd > 0 && netProfitUsd > 0) {
     breakEvenDays = minerCostUsd / netProfitUsd;
-    dailyRoiPercent = (netProfitUsd / minerCostUsd) * 100;
   }
 
   return {
@@ -169,7 +173,6 @@ function calculateRewards(params) {
     payoutAmount,
     payoutCoin,
     breakEvenDays,
-    dailyRoiPercent,
     minerCostUsd
   };
 }
@@ -245,7 +248,6 @@ document.addEventListener("DOMContentLoaded", () => {
       payoutAmount,
       payoutCoin: coin,
       breakEvenDays,
-      dailyRoiPercent,
       minerCostUsd: cost
     } = res;
 
@@ -264,18 +266,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (cost > 0) {
       if (netProfitUsd > 0) {
-        const daysText = breakEvenDays < 1 ? "< 1 day" : formatNumber(breakEvenDays, 1) + " days";
         html += `
           <hr class="divider" style="margin: 14px 0;" />
-          <p><strong>Return on Investment (ROI):</strong></p>
-          <p>Daily ROI: ${dailyRoiPercent.toFixed(3)}%</p>
-          <p>Break-even Time: ${daysText}</p>
+          <p><strong>Break-even Time:</strong> ${formatBreakEvenYears(breakEvenDays)}</p>
           <p class="small-note">Based on $${formatNumber(cost, 0)} hardware cost</p>
         `;
       } else {
         html += `
           <hr class="divider" style="margin: 14px 0;" />
-          <p class="error"><strong>Not profitable at current rates</strong></p>
+          <p class="error"><strong>Not profitable at current rates</strong----------------------------------------</p>
           <p class="small-note">Daily net: ${formatUsd(netProfitUsd)}. Break-even not possible.</p>
         `;
       }
