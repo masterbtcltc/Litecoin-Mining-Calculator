@@ -48,20 +48,33 @@
 
       <form id="miningForm">
         <div style="margin-bottom:16px;display:flex;flex-wrap:wrap;gap:8px;">
-          <button type="button" class="btn preset-btn" data-hash="9500" data-power="3425">Antminer L7 (9.5 GH/s)</button>
-          <button type="button" class="btn preset-btn" data-hash="17000" data-power="3570">Antminer L9 (17 GH/s)</button>
-          <button type="button" class="btn preset-btn" data-hash="14000" data-power="3920">ElphaPex DG1+ (14 GH/s)</button>
-          <button type="button" class="btn preset-btn" data-hash="20000" data-power="3680">Antminer L11 (20 GH/s)</button>
+          <button type="button" class="btn preset-btn" data-hash="9.5" data-power="3425">Antminer L7 (9.5 GH/s)</button>
+          <button type="button" class="btn preset-btn" data-hash="17" data-power="3570">Antminer L9 (17 GH/s)</button>
+          <button type="button" class="btn preset-btn" data-hash="14" data-power="3920">ElphaPex DG1+ (14 GH/s)</button>
+          <button type="button" class="btn preset-btn" data-hash="20" data-power="3680">Antminer L11 (20 GH/s)</button>
         </div>
 
         <div class="form-row"><label>Hash Rate (GH/s)</label><input type="number" id="hashRate" step="0.01" placeholder="e.g. 16" required /></div>
         <div class="form-row"><label>Power Usage (Watts)</label><input type="number" id="powerUsage" step="1" placeholder="e.g. 3360" required /></div>
+
         <div class="form-row-inline">
           <div class="form-row"><label>Pool Fee (%)</label><input type="number" id="poolFee" step="0.01" value="1" /></div>
           <div class="form-row"><label>Energy Cost (USD/kWh)</label><input type="number" id="energyCost" step="0.001" value="0.07" /></div>
         </div>
+
+        <div class="form-row" style="margin-top:16px;">
+          <p style="font-size:14px;opacity:0.9;margin:0 0 8px;"><strong>Hypothetical Prices (optional)</strong></p>
+        </div>
+        <div class="form-row-inline">
+          <div class="form-row"><label>Future LTC Price (USD)</label><input type="number" id="hypoLTC" step="0.01" placeholder="e.g. 150" /></div>
+          <div class="form-row"><label>Future DOGE Price (USD)</label><input type="number" id="hypoDOGE" step="0.0001" placeholder="e.g. 0.50" /></div>
+        </div>
+        <div class="form-row"><p class="small-note">Leave blank = live prices • Filled values override live prices</p></div>
+
         <div class="form-row"><label>Total Miner Cost (USD)</label><input type="number" id="minerCost" step="1" placeholder="e.g. 2500" /><p class="small-note">Optional: for break-even</p></div>
+
         <div class="form-row"><label>Payout Coin</label><select id="payoutCoin"><option value="LTC">Litecoin (LTC)</option><option value="DOGE">Dogecoin (DOGE)</option></select></div>
+
         <button type="submit" class="btn">Calculate Rewards</button>
       </form>
 
