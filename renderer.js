@@ -44,15 +44,16 @@ async function fetchNetworkHashrates() {
     }
     const data = await res.json();
 
-    // Updated: Use currentHashrate (in H/s)
+    // NEW: Directly use currentHashrate (in H/s)
     const raw = data?.currentHashrate;
     if (typeof raw !== "number" || raw <= 0) {
-      throw new Error("Invalid currentHashrate from LitecoinSpace");
+      throw new Error("Invalid or missing currentHashrate from LitecoinSpace");
     }
 
-    // Convert H/s -> TH/s
+    // Convert H/s -> TH/s (for internal calculations)
     const ltcTh = raw / 1e12;
-    const dogeTh = ltcTh; // Still valid for merge-mining
+    const dogeTh = ltcTh; // Still valid due to merge-mining
+
     return { ltcTh, dogeTh };
   } catch (err) {
     console.error("Error fetching hashrates from LitecoinSpace:", err);
@@ -117,7 +118,7 @@ function renderHashrateSummary() {
   el.innerHTML = `
     <p><strong>Litecoin Hashrate:</strong> ${formatNumber(ltcPh, 2)} PH/s</p>
     <p class="small-note">
-      Hashrate pulled from Litecoinspace.org mining API (3-day average). Dogecoin is merge mined on the same Scrypt hashrate.
+      Current hashrate from litecoinspace.org API. Dogecoin is merge-mined on the same Scrypt network.
     </p>
   `;
 }
