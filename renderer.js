@@ -9,9 +9,6 @@ const LTC_BLOCK_TIME_MIN = 2.5;         // minutes
 const DOGE_BLOCK_REWARD = 10000;        // DOGE per block
 const DOGE_BLOCK_TIME_MIN = 1;          // minutes
 
-// Fallback static hashrates in TH/s (if API fails)
-const FALLBACK_LTC_HASHRATE_TH = 3300;
-
 // API endpoints
 const SOCHAIN_LTC_INFO_URL = "https://chain.so/api/v3/get_info/LTC";
 const SOCHAIN_DOGE_INFO_URL = "https://chain.so/api/v3/get_info/DOGE";
@@ -39,53 +36,57 @@ function formatUsd(num) {
 // ----------------------
 
 async function fetchNetworkHashrates() {
-  let ltcTh = FALLBACK_LTC_HASHRATE_TH;
-  let dogeTh = FALLBACK_DOGE_HASHRATE_TH;
-
   try {
     const [ltcRes, dogeRes] = await Promise.all([
       fetch(SOCHAIN_LTC_INFO_URL),
       fetch(SOCHAIN_DOGE_INFO_URL)
     ]);
 
-    if (ltcRes.ok) {
-      const data = await ltcRes.json();
-      const hps = data?.data?.hashrate;
-      if (typeof hps === "number" && hps > 0) {
-        ltcTh = hps / 1e12; // H/s -> TH/s
-      }
+    if (!ltcRes.ok || !dogeRes.ok) {
+      throw new Error("Network response was not ok");
     }
 
-    if (dogeRes.ok) {
-      const data = await dogeRes.json();
-      const hps = data?.data?.hashrate;
-      if (typeof hps === "number" && hps > 0) {
-        dogeTh = hps / 1e12;
-      }
+    const ltcData = await ltcRes.json();
+    const dogeData = await dogeRes.json();
+
+    const ltcHps = ltcData?.data?.hashrate;
+    const dogeHps = dogeData?.data?.hashrate;
+
+    if (typeof ltcHps !== "number" || ltcHps <= 0 ||
+        typeof dogeHps !== "number" || dogeHps <= 0) {
+      throw new Error("Invalid hashrate data");
     }
+
+    const ltcTh = ltcHps / 1e12;   // H/s -> TH/s
+    const dogeTh = dogeHps / 1e12; // H/s -> TH/s
+
+    return { ltcTh, dogeTh };
   } catch (err) {
-    console.warn("Error fetching hashrates, using fallback values:", err);
+    console.error("Error fetching hashrates:", err);
+    return { ltcTh: NaN, dogeTh: NaN };
   }
-
-  return { ltcTh, dogeTh };
 }
 
 async function fetchPrices() {
-  let ltcUsd = NaN;
-  let dogeUsd = NaN;
-
   try {
     const res = await fetch(COINGECKO_SIMPLE_PRICE);
-    if (res.ok) {
-      const data = await res.json();
-      ltcUsd = data?.litecoin?.usd ?? NaN;
-      dogeUsd = data?.dogecoin?.usd ?? NaN;
+    if (!res.ok) {
+      throw new Error("Price response not ok");
     }
-  } catch (err) {
-    console.warn("Error fetching prices:", err);
-  }
+    const data = await res.json();
+    const ltcUsd = data?.litecoin?.usd;
+    const dogeUsd = data?.dogecoin?.usd;
 
-  return { ltcUsd, dogeUsd };
+    if (typeof ltcUsd !== "number" || ltcUsd <= 0 ||
+        typeof dogeUsd !== "number" || dogeUsd <= 0) {
+      throw new Error("Invalid price data");
+    }
+
+    return { ltcUsd, dogeUsd };
+  } catch (err) {
+    console.error("Error fetching prices:", err);
+    return { ltcUsd: NaN, dogeUsd: NaN };
+  }
 }
 
 // ----------------------
@@ -93,241 +94,9 @@ async function fetchPrices() {
 // ----------------------
 
 let currentHashrates = {
-  ltcTh: FALLBACK_LTC_HASHRATE_TH,
-  dogeTh: FALLBACK_DOGE_HASHRATE_TH
+  ltcTh: NaN,
+  dogeTh: NaN
 };
 
 let currentPrices = {
-  ltcUsd: NaN,
-  dogeUsd: NaN
-};
-
-function renderHashrateSummary() {
-  const { ltcTh, dogeTh } = currentHashrates;
-  const el = document.getElementById("hashrateSummary");
-  if (!el) return;
-
-  el.innerHTML = `
-    <p><strong>Litecoin Hashrate:</strong> ${formatNumber(ltcTh, 2)} TH/s</p>
-    <p><strong>Dogecoin (merge-mined) Hashrate:</strong> ${formatNumber(
-      dogeTh,
-      2
-    )} TH/s</p>
-    <p class="small-note">
-      Dogecoin shares the same Scrypt miners as Litecoin via merge mining.
-    </p>
-  `;
-}
-
-function renderPriceSummary() {
-  const { ltcUsd, dogeUsd } = currentPrices;
-  const el = document.getElementById("priceSummary");
-  if (!el) return;
-
-  el.innerHTML = `
-    <p><strong>LTC Price:</strong> ${
-      isNaN(ltcUsd) ? "-" : formatUsd(ltcUsd)
-    }</p>
-    <p><strong>DOGE Price:</strong> ${
-      isNaN(dogeUsd) ? "-" : formatUsd(dogeUsd)
-    }</p>
-  `;
-}
-
-// ----------------------
-// MINING CALCULATOR
-// ----------------------
-
-function calculateRewards(params) {
-  const {
-    hashRateGH,
-    powerW,
-    poolFeePercent,
-    energyCostKWh,
-    ltcPriceUsd,
-    dogePriceUsd,
-    payoutCoin,
-    ltcNetworkTh,
-    dogeNetworkTh
-  } = params;
-
-  const minerHashTH = hashRateGH / 1000;
-
-  // Blocks per day
-  const ltcBlocksPerDay = 1440 / LTC_BLOCK_TIME_MIN;
-  const dogeBlocksPerDay = 1440 / DOGE_BLOCK_TIME_MIN;
-
-  // Network daily rewards
-  const ltcDailyNetworkReward = LTC_BLOCK_REWARD * ltcBlocksPerDay;
-  const dogeDailyNetworkReward = DOGE_BLOCK_REWARD * dogeBlocksPerDay;
-
-  // Rewards per TH/s per day
-  const ltcPerThPerDay = ltcDailyNetworkReward / ltcNetworkTh;
-  const dogePerThPerDay = dogeDailyNetworkReward / dogeNetworkTh;
-
-  // Miner rewards before fee
-  const grossLtcPerDay = minerHashTH * ltcPerThPerDay;
-  const grossDogePerDay = minerHashTH * dogePerThPerDay;
-
-  const feeFactor = 1 - (poolFeePercent || 0) / 100;
-
-  const netLtcPerDay = grossLtcPerDay * feeFactor;
-  const netDogePerDay = grossDogePerDay * feeFactor;
-
-  // Power cost
-  const kW = powerW / 1000;
-  const kWhPerDay = kW * 24;
-  const powerCostPerDayUsd = kWhPerDay * energyCostKWh;
-
-  // Revenue in USD from each coin
-  const ltcRevenueUsd = netLtcPerDay * ltcPriceUsd;
-  const dogeRevenueUsd = netDogePerDay * dogePriceUsd;
-  const totalRevenueUsd = ltcRevenueUsd + dogeRevenueUsd;
-  const netProfitUsd = totalRevenueUsd - powerCostPerDayUsd;
-
-  // Combined payout in selected coin:
-  // - If LTC payout: sell DOGE for USD, buy LTC
-  // - If DOGE payout: sell LTC for USD, buy DOGE
-  let payoutAmount = NaN;
-  if (payoutCoin === "LTC") {
-    payoutAmount = totalRevenueUsd / ltcPriceUsd;
-  } else if (payoutCoin === "DOGE") {
-    payoutAmount = totalRevenueUsd / dogePriceUsd;
-  }
-
-  return {
-    netLtcPerDay,
-    netDogePerDay,
-    powerCostPerDayUsd,
-    totalRevenueUsd,
-    netProfitUsd,
-    payoutAmount
-  };
-}
-
-// ----------------------
-// BOOTSTRAP
-// ----------------------
-
-async function refreshLiveData() {
-  const [hashrates, prices] = await Promise.all([
-    fetchNetworkHashrates(),
-    fetchPrices()
-  ]);
-
-  currentHashrates = hashrates;
-  currentPrices = prices;
-
-  renderHashrateSummary();
-  renderPriceSummary();
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  const resultsEl = document.getElementById("results");
-  const form = document.getElementById("miningForm");
-  const refreshBtn = document.getElementById("refreshAll");
-
-  refreshLiveData(); // initial load
-
-  if (refreshBtn) {
-    refreshBtn.addEventListener("click", () => {
-      refreshLiveData();
-    });
-  }
-
-  if (!form || !resultsEl) return;
-
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-
-    const hashRateGH = parseFloat(
-      document.getElementById("hashRate").value || "0"
-    );
-    const powerW = parseFloat(
-      document.getElementById("powerUsage").value || "0"
-    );
-    const poolFeePercent = parseFloat(
-      document.getElementById("poolFee").value || "0"
-    );
-    const energyCostKWh = parseFloat(
-      document.getElementById("energyCost").value || "0"
-    );
-
-    const payoutCoin = document.getElementById("payoutCoin").value;
-
-    if (!hashRateGH || !powerW) {
-      resultsEl.innerHTML =
-        "<p>Please enter at least hash rate and power usage.</p>";
-      return;
-    }
-
-    const { ltcUsd, dogeUsd } = currentPrices;
-
-    if (isNaN(ltcUsd) || isNaN(dogeUsd)) {
-      resultsEl.innerHTML =
-        "<p>Price feed not available yet. Please hit “Refresh now” and try again.</p>";
-      return;
-    }
-
-    const res = calculateRewards({
-      hashRateGH,
-      powerW,
-      poolFeePercent,
-      energyCostKWh,
-      ltcPriceUsd: ltcUsd,
-      dogePriceUsd: dogeUsd,
-      payoutCoin,
-      ltcNetworkTh: currentHashrates.ltcTh,
-      dogeNetworkTh: currentHashrates.dogeTh
-    });
-
-    const {
-      netLtcPerDay,
-      netDogePerDay,
-      powerCostPerDayUsd,
-      totalRevenueUsd,
-      netProfitUsd,
-      payoutAmount
-    } = res;
-
-    let html = `
-      <p><strong>Estimated Daily Rewards (after pool fee):</strong></p>
-      <p>Litecoin: ${formatNumber(netLtcPerDay, 6)} LTC / day</p>
-      <p>Dogecoin: ${formatNumber(netDogePerDay, 2)} DOGE / day</p>
-      <p><strong>Power Cost:</strong> ${formatUsd(powerCostPerDayUsd)} per day</p>
-      <p><strong>Estimated Revenue:</strong> ${formatUsd(
-        totalRevenueUsd
-      )} per day</p>
-      <p><strong>Estimated Net Profit:</strong> ${formatUsd(
-        netProfitUsd
-      )} per day</p>
-      <hr class="divider" />
-    `;
-
-    if (!isNaN(payoutAmount)) {
-      if (payoutCoin === "LTC") {
-        html += `
-          <p><strong>Combined Payout (LTC):</strong> ${formatNumber(
-            payoutAmount,
-            6
-          )} LTC / day</p>
-          <p><strong>Combined Payout (USD):</strong> ${formatUsd(
-            totalRevenueUsd
-          )} per day</p>
-        `;
-      } else {
-        html += `
-          <p><strong>Combined Payout (DOGE):</strong> ${formatNumber(
-            payoutAmount,
-            2
-          )} DOGE / day</p>
-          <p><strong>Combined Payout (USD):</strong> ${formatUsd(
-            totalRevenueUsd
-          )} per day</p>
-        `;
-      }
-    }
-
-    resultsEl.innerHTML = html;
-  });
-});
+  lt
