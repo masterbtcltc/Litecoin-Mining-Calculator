@@ -31,119 +31,66 @@
       border: 1px solid rgba(40, 116, 255, 0.7);
       backdrop-filter: blur(6px);
     }
-    h1, h2, h3 {
+    h1, h2 {
       margin: 0 0 10px 0;
       letter-spacing: 0.03em;
     }
-    h1 {
-      font-size: 24px;
-    }
-    h2 {
-      font-size: 20px;
-    }
-    .muted {
-      font-size: 13px;
-      opacity: 0.8;
-    }
-    .hashrate-header p {
-      margin: 4px 0;
-      font-size: 14px;
-    }
+    h1 { font-size: 24px; }
+    h2 { font-size: 20px; }
+    .muted { font-size: 13px; opacity: 0.8; }
+    .hashrate-header p { margin: 4px 0; font-size: 14px; }
     .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 5px 10px;
-      border-radius: 999px;
-      font-size: 11px;
-      background: rgba(7, 64, 125, 0.4);
-      border: 1px solid rgba(64, 149, 255, 0.9);
-      margin-top: 6px;
+      display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px;
+      border-radius: 999px; font-size: 11px; background: rgba(7, 64, 125, 0.4);
+      border: 1px solid rgba(64, 149, 255, 0.9); margin-top: 6px;
     }
     .live-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: #2cf0ff;
+      width: 7px; height: 7px; border-radius: 50%; background: #2cf0ff;
       box-shadow: 0 0 8px #2cf0ff;
     }
     .form-row {
-      display: flex;
-      flex-direction: column;
-      margin-bottom: 10px;
+      display: flex; flex-direction: column; margin-bottom: 10px;
     }
     .form-row label {
-      font-size: 13px;
-      margin-bottom: 4px;
+      font-size: 13px; margin-bottom: 4px;
     }
-    .form-row input,
-    .form-row select {
-      padding: 8px 10px;
-      border-radius: 8px;
-      border: 1px solid rgba(80, 143, 255, 0.8);
-      background: #010a16;
-      color: #ffffff;
-      font-size: 14px;
-      box-sizing: border-box;
+    .form-row input, .form-row select {
+      padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(80, 143, 255, 0.8);
+      background: #010a16; color: #ffffff; font-size: 14px; box-sizing: border-box;
     }
-    .form-row input:focus,
-    .form-row select:focus {
-      outline: none;
-      border-color: #9ed0ff;
-      box-shadow: 0 0 0 1px rgba(158, 208, 255, 0.5);
+    .form-row input:focus, .form-row select:focus {
+      outline: none; border-color: #9ed0ff; box-shadow: 0 0 0 1px rgba(158, 208, 255, 0.5);
     }
     .form-row-inline {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+      display: flex; flex-direction: column; gap: 10px;
     }
     @media (min-width: 640px) {
-      .form-row-inline {
-        flex-direction: row;
-      }
-      .form-row-inline .form-row {
-        flex: 1;
-      }
+      .form-row-inline { flex-direction: row; }
+      .form-row-inline .form-row { flex: 1; }
     }
     .btn {
-      width: 100%;
-      padding: 11px;
-      border-radius: 999px;
-      border: none;
-      background: linear-gradient(135deg, #1f7bff, #4fd2ff);
-      color: #ffffff;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 4px;
+      width: 100%; padding: 11px; border-radius: 999px; border: none;
+      background: linear-gradient(135deg, #1f7bff, #4fd2ff); color: #ffffff;
+      font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 4px;
       transition: transform 0.08s ease-out, box-shadow 0.08s ease-out, opacity 0.08s;
       box-shadow: 0 14px 30px rgba(0, 39, 95, 0.9);
     }
     .btn:hover {
-      opacity: 0.96;
-      transform: translateY(-1px);
+      opacity: 0.96; transform: translateY(-1px);
       box-shadow: 0 18px 42px rgba(0, 39, 95, 1);
     }
-    .results p {
-      margin: 4px 0;
-      font-size: 14px;
+    .preset-btn {
+      width: auto; padding: 9px 14px; font-size: 13px; margin: 0;
+      box-shadow: 0 8px 20px rgba(0, 39, 95, 0.7);
     }
-    .results strong {
-      font-size: 15px;
-    }
+    .preset-btn:active { transform: translateY(1px); }
+    .results p { margin: 4px 0; font-size: 14px; }
+    .results strong { font-size: 15px; }
     .divider {
-      border: 0;
-      border-top: 1px dashed rgba(86, 143, 219, 0.7);
-      margin: 10px 0;
+      border: 0; border-top: 1px dashed rgba(86, 143, 219, 0.7); margin: 10px 0;
     }
-    .small-note {
-      font-size: 11px;
-      opacity: 0.8;
-      margin-top: 6px;
-    }
-    .error {
-      color: #ff7676;
-    }
+    .small-note { font-size: 11px; opacity: 0.8; margin-top: 6px; }
+    .error { color: #ff7676; }
   </style>
 </head>
 <body>
@@ -158,13 +105,31 @@
       <hr class="divider" />
       <div id="priceSummary" class="hashrate-header"></div>
     </div>
+
     <div class="card">
       <h2>Litecoin Mining Calculator</h2>
       <p class="muted">
         Enter your miner specs and costs. Calculator includes merged Dogecoin rewards and
         converts everything into your chosen payout coin.
       </p>
+
       <form id="miningForm">
+        <!-- Preset Miner Buttons -->
+        <div style="margin-bottom: 16px; display: flex; flex-wrap: wrap; gap: 8px;">
+          <button type="button" class="btn preset-btn" data-hash="9.5" data-power="3425">
+            Antminer L7 (9.5 GH/s)
+          </button>
+          <button type="button" class="btn preset-btn" data-hash="17" data-power="3570">
+            Antminer L9 (17 GH/s)
+          </button>
+          <button type="button" class="btn preset-btn" data-hash="14" data-power="3920">
+            ElphaPex DG1+ (14 GH/s)
+          </button>
+          <button type="button" class="btn preset-btn" data-hash="20" data-power="3680">
+            Antminer L11 (20 GH/s)
+          </button>
+        </div>
+
         <div class="form-row">
           <label for="hashRate">Hash Rate (GH/s)</label>
           <input type="number" id="hashRate" step="0.01" placeholder="e.g. 16" required />
@@ -186,7 +151,7 @@
         <div class="form-row">
           <label for="minerCost">Total Miner Cost (USD)</label>
           <input type="number" id="minerCost" step="1" placeholder="e.g. 2500" />
-          <p class="small-note" style="margin-top: 4px;">Optional: for break-even and ROI calculation</p>
+          <p class="small-note" style="margin-top: 4px;">Optional: for break-even calculation</p>
         </div>
         <div class="form-row">
           <label for="payoutCoin">Desired Payout Coin</label>
@@ -197,9 +162,11 @@
         </div>
         <button type="submit" class="btn">Calculate Rewards</button>
       </form>
+
       <div class="results" id="results" style="margin-top: 14px;"></div>
     </div>
   </div>
+
   <script src="renderer.js"></script>
 </body>
 </html>
