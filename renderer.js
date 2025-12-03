@@ -116,7 +116,7 @@ function renderHashrateSummary() {
   const ltcPh = ltcTh / 1000; // convert TH/s -> PH/s for display
 
   el.innerHTML = `
-    <p><strong>Litecoin Hashrate:</strong> ${formatNumber(ltcPh, 2)} PH/s</p>
+    <p><strong>Litecoin Network Hashrate:</strong> ${formatNumber(ltcPh, 2)} PH/s (current)</p>
     <p class="small-note">
       Current hashrate from litecoinspace.org API. Dogecoin is merge-mined on the same Scrypt network.
     </p>
