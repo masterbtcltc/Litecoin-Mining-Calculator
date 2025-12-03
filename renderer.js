@@ -98,7 +98,7 @@ document.addEventListener("DOMContentLoaded",()=>{
     `;
     if(cost>0){
       if(r.profit>0){
-        html+=`<hr class="divider" style="margin:14px 0"/><p><strong>Break-even:</strong> ${years(r.breakEven)}</p><p class="small-note">Based on $${fmt(cost,0)} cost</p>`;
+        html+=`<hr class="divider" style="margin:14px 0"/><p><strong>Break-even:</strong> ${years(r.breakEven)}</p>`;
       }else{
         html+=`<hr class="divider" style="margin:14px 0"/><p class="error"><strong>Not profitable</strong> – daily loss ${usd(-r.profit)}</p>`;
       }
