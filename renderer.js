@@ -10,7 +10,9 @@ const DOGE_BLOCK_REWARD = 10000;        // DOGE per block
 const DOGE_BLOCK_TIME_MIN = 1;          // minutes
 
 // API endpoints
-const MINERSTAT_LTC_URL = "https://api.minerstat.com/v2/coins?list=LTC";
+// LitecoinSpace REST API: hashrate time-series, e.g. /3d returns an array of { timestamp, avgHashrate }:contentReference[oaicite:0]{index=0}
+const LITESPACE_HASHRATE_URL = "https://litecoinspace.org/api/v1/mining/hashrate/3d";
+// CoinGecko prices
 const COINGECKO_SIMPLE_PRICE =
   "https://api.coingecko.com/api/v3/simple/price?ids=litecoin,dogecoin&vs_currencies=usd";
 
@@ -36,30 +38,37 @@ function formatUsd(num) {
 
 async function fetchNetworkHashrates() {
   try {
-    const res = await fetch(MINERSTAT_LTC_URL);
+    const res = await fetch(LITESPACE_HASHRATE_URL);
     if (!res.ok) {
-      throw new Error("Minerstat response not ok: " + res.status);
+      throw new Error("LitecoinSpace response not ok: " + res.status);
     }
 
     const data = await res.json();
-    // Minerstat coins API returns an array; we requested list=LTC so index 0 is LTC
-    const ltc = Array.isArray(data)
-      ? data.find((c) => c.coin === "LTC") || data[0]
-      : null;
+    const arr = data?.hashrates;
 
-    const rawHashrate = ltc?.network_hashrate;
-
-    // network_hashrate is in H/s :contentReference[oaicite:1]{index=1}
-    if (typeof rawHashrate !== "number" || rawHashrate <= 0) {
-      throw new Error("Invalid network_hashrate from Minerstat");
+    if (!Array.isArray(arr) || arr.length === 0) {
+      throw new Error("Invalid hashrate array from LitecoinSpace");
     }
 
-    const ltcTh = rawHashrate / 1e12; // H/s -> TH/s
-    const dogeTh = ltcTh;             // merge-mined: assume same Scrypt hashrate
+    // Take the last entry in the series as the most recent average hashrate
+    const latest = arr[arr.length - 1];
+    const raw =
+      typeof latest.avgHashrate === "number"
+        ? latest.avgHashrate
+        : latest.hashrate;
+
+    if (typeof raw !== "number" || raw <= 0) {
+      throw new Error("Invalid hashrate value from LitecoinSpace");
+    }
+
+    // LitecoinSpace returns hashrate in H/s; convert H/s -> TH/s
+    const ltcTh = raw / 1e12;
+    // DOGE is merge-mined with LTC; we assume same Scrypt hashrate internally
+    const dogeTh = ltcTh;
 
     return { ltcTh, dogeTh };
   } catch (err) {
-    console.error("Error fetching hashrates from Minerstat:", err);
+    console.error("Error fetching hashrates from LitecoinSpace:", err);
     return { ltcTh: NaN, dogeTh: NaN };
   }
 }
@@ -105,25 +114,23 @@ let currentPrices = {
 };
 
 function renderHashrateSummary() {
-  const { ltcTh, dogeTh } = currentHashrates;
+  const { ltcTh } = currentHashrates;
   const el = document.getElementById("hashrateSummary");
   if (!el) return;
 
-  if (isNaN(ltcTh) || isNaN(dogeTh)) {
+  if (isNaN(ltcTh)) {
     el.innerHTML = `
       <p class="error"><strong>Error:</strong> Unable to load network hashrate data. Please reload the page.</p>
     `;
     return;
   }
 
+  const ltcPh = ltcTh / 1000; // convert TH/s -> PH/s for display
+
   el.innerHTML = `
-    <p><strong>Litecoin Hashrate:</strong> ${formatNumber(ltcTh, 2)} TH/s</p>
-    <p><strong>Dogecoin (merge-mined) Hashrate:</strong> ${formatNumber(
-      dogeTh,
-      2
-    )} TH/s</p>
+    <p><strong>Litecoin Hashrate:</strong> ${formatNumber(ltcPh, 2)} PH/s</p>
     <p class="small-note">
-      Dogecoin shares the same Scrypt miners as Litecoin via merge mining.
+      Hashrate pulled from Litecoinspace.org mining API (3-day average). Dogecoin is merge mined on the same Scrypt hashrate.
     </p>
   `;
 }
