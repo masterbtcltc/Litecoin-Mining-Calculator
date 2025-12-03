@@ -11,7 +11,6 @@ const DOGE_BLOCK_TIME_MIN = 1;          // minutes
 
 // Fallback static hashrates in TH/s (if API fails)
 const FALLBACK_LTC_HASHRATE_TH = 3300;
-const FALLBACK_DOGE_HASHRATE_TH = 800;
 
 // API endpoints
 const SOCHAIN_LTC_INFO_URL = "https://chain.so/api/v3/get_info/LTC";
