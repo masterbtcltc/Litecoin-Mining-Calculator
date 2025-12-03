@@ -86,8 +86,14 @@ function renderPriceSummary() {
     return;
   }
   el.innerHTML = `
-    <p><strong>LTC Price:</strong> ${formatUsd(currentPrices.ltcUsd)}</p>
-    <p><strong>DOGE Price:</strong> ${formatUsd(currentPrices.dogeUsd)}</p>
+    <div class="price-line">
+      <img src="ltclogo.png" alt="LTC" class="price-logo">
+      <strong>LTC Price:</strong> ${formatUsd(currentPrices.ltcUsd)}
+    </div>
+    <div class="price-line" style="margin-top: 8px;">
+      <img src="dogelogo.png" alt="DOGE" class="price-logo">
+      <strong>DOGE Price:</strong> ${formatUsd(currentPrices.dogeUsd)}
+    </div>
   `;
 }
 
