@@ -165,7 +165,7 @@ function calculateRewards(params) {
   const minerHashTH = hashRateGH / 1000;
 
   // Blocks per day
-  const ltcBlocksPerDay = 576 / LTC_BLOCK_TIME_MIN;
+  const ltcBlocksPerDay = 1440 / LTC_BLOCK_TIME_MIN;
   const dogeBlocksPerDay = 1440 / DOGE_BLOCK_TIME_MIN;
 
   // Network daily rewards
