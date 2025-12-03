@@ -31,10 +31,7 @@
       border: 1px solid rgba(40, 116, 255, 0.7);
       backdrop-filter: blur(6px);
     }
-    h1, h2 {
-      margin: 0 0 10px 0;
-      letter-spacing: 0.03em;
-    }
+    h1, h2 { margin: 0 0 10px 0; letter-spacing: 0.03em; }
     h1 { font-size: 24px; }
     h2 { font-size: 20px; }
     .muted { font-size: 13px; opacity: 0.8; }
@@ -51,9 +48,7 @@
     .form-row {
       display: flex; flex-direction: column; margin-bottom: 10px;
     }
-    .form-row label {
-      font-size: 13px; margin-bottom: 4px;
-    }
+    .form-row label { font-size: 13px; margin-bottom: 4px; }
     .form-row input, .form-row select {
       padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(80, 143, 255, 0.8);
       background: #010a16; color: #ffffff; font-size: 14px; box-sizing: border-box;
@@ -91,6 +86,20 @@
     }
     .small-note { font-size: 11px; opacity: 0.8; margin-top: 6px; }
     .error { color: #ff7676; }
+
+    /* Price with logo */
+    .price-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 15px;
+    }
+    .price-logo {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 4px rgba(0,0,0,0.5));
+    }
   </style>
 </head>
 <body>
@@ -114,7 +123,6 @@
       </p>
 
       <form id="miningForm">
-        <!-- Preset Miner Buttons -->
         <div style="margin-bottom: 16px; display: flex; flex-wrap: wrap; gap: 8px;">
           <button type="button" class="btn preset-btn" data-hash="9.5" data-power="3425">
             Antminer L7 (9.5 GH/s)
