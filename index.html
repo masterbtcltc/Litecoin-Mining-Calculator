@@ -39,3 +39,237 @@
       margin: 0 0 10px 0;
       letter-spacing: 0.03em;
     }
+
+    h1 {
+      font-size: 24px;
+    }
+
+    h2 {
+      font-size: 20px;
+    }
+
+    .muted {
+      font-size: 13px;
+      opacity: 0.8;
+    }
+
+    .hashrate-header p {
+      margin: 4px 0;
+      font-size: 14px;
+    }
+
+    .hashrate-highlight {
+      font-size: 15px;
+      margin-top: 6px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      background: rgba(92, 73, 255, 0.22);
+      border: 1px solid rgba(159, 130, 255, 0.8);
+      margin-top: 6px;
+    }
+
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #25ff9b;
+      box-shadow: 0 0 6px #25ff9b;
+    }
+
+    .small-btn {
+      border: none;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 11px;
+      cursor: pointer;
+      margin-left: 6px;
+      background: rgba(148, 130, 255, 0.2);
+      color: #ffffff;
+    }
+
+    .small-btn:hover {
+      background: rgba(148, 130, 255, 0.4);
+    }
+
+    .form-row {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 10px;
+    }
+
+    .form-row label {
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+
+    .form-row input,
+    .form-row select {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(175, 149, 255, 0.7);
+      background: #09001e;
+      color: #ffffff;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    .form-row input:focus,
+    .form-row select:focus {
+      outline: none;
+      border-color: #d2c4ff;
+      box-shadow: 0 0 0 1px rgba(210, 196, 255, 0.4);
+    }
+
+    .form-row-inline {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    @media (min-width: 640px) {
+      .form-row-inline {
+        flex-direction: row;
+      }
+      .form-row-inline .form-row {
+        flex: 1;
+      }
+    }
+
+    .btn {
+      width: 100%;
+      padding: 11px;
+      border-radius: 999px;
+      border: none;
+      background: linear-gradient(135deg, #5a8dff, #b98cff);
+      color: #ffffff;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 4px;
+      transition: transform 0.08s ease-out, box-shadow 0.08s ease-out, opacity 0.08s;
+      box-shadow: 0 14px 30px rgba(17, 0, 93, 0.75);
+    }
+
+    .btn:hover {
+      opacity: 0.96;
+      transform: translateY(-1px);
+      box-shadow: 0 18px 42px rgba(17, 0, 93, 0.9);
+    }
+
+    .results p {
+      margin: 4px 0;
+      font-size: 14px;
+    }
+
+    .results strong {
+      font-size: 15px;
+    }
+
+    .divider {
+      border: 0;
+      border-top: 1px dashed rgba(167, 141, 255, 0.4);
+      margin: 10px 0;
+    }
+
+    .small-note {
+      font-size: 11px;
+      opacity: 0.8;
+      margin-top: 6px;
+    }
+
+    code {
+      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco,
+        Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 11px;
+      background: rgba(0, 0, 0, 0.32);
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="card">
+      <h1>Litecoin / Dogecoin Network</h1>
+      <div class="pill">
+        <span class="live-dot"></span>
+        <span>Live hashrate &amp; price feed</span>
+        <button type="button" id="refreshAll" class="small-btn">Refresh now</button>
+      </div>
+
+      <div id="hashrateSummary" class="hashrate-header" style="margin-top: 10px;"></div>
+      <hr class="divider" />
+      <div id="priceSummary" class="hashrate-header"></div>
+
+      <p class="small-note">
+        Data fetched from public APIs (SoChain for hashrate, CoinGecko for prices).  
+        Values are approximate and for educational use.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>Litecoin Mining Calculator</h2>
+      <p class="muted">
+        Enter your miner specs and costs. Calculator includes merged Dogecoin rewards.
+      </p>
+
+      <form id="miningForm">
+        <div class="form-row">
+          <label for="hashRate">Hash Rate (GH/s)</label>
+          <input type="number" id="hashRate" step="0.01" placeholder="e.g. 16" required />
+        </div>
+
+        <div class="form-row">
+          <label for="powerUsage">Power Usage (Watts)</label>
+          <input type="number" id="powerUsage" step="1" placeholder="e.g. 3360" required />
+        </div>
+
+        <div class="form-row-inline">
+          <div class="form-row">
+            <label for="poolFee">Mining Pool Fee (%)</label>
+            <input type="number" id="poolFee" step="0.01" placeholder="e.g. 1" value="1" />
+          </div>
+
+          <div class="form-row">
+            <label for="energyCost">Energy Cost (USD / kWh)</label>
+            <input type="number" id="energyCost" step="0.001" placeholder="e.g. 0.07" value="0.07" />
+          </div>
+        </div>
+
+        <div class="form-row-inline">
+          <div class="form-row">
+            <label for="ltcPrice">LTC Price (USD)</label>
+            <input type="number" id="ltcPrice" step="0.01" placeholder="auto-filled from feed" />
+          </div>
+
+          <div class="form-row">
+            <label for="dogePrice">DOGE Price (USD)</label>
+            <input type="number" id="dogePrice" step="0.0001" placeholder="auto-filled from feed" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label for="payoutCoin">Desired Payout Coin</label>
+          <select id="payoutCoin">
+            <option value="LTC">Litecoin (LTC)</option>
+            <option value="DOGE">Dogecoin (DOGE)</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn">Calculate Rewards</button>
+      </form>
+
+      <div class="results" id="results" style="margin-top: 14px;"></div>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>
