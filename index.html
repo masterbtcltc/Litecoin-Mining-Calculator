@@ -58,11 +58,6 @@
       font-size: 14px;
     }
 
-    .hashrate-highlight {
-      font-size: 15px;
-      margin-top: 6px;
-    }
-
     .pill {
       display: inline-flex;
       align-items: center;
@@ -207,17 +202,13 @@
       <div id="hashrateSummary" class="hashrate-header" style="margin-top: 10px;"></div>
       <hr class="divider" />
       <div id="priceSummary" class="hashrate-header"></div>
-
-      <p class="small-note">
-        Data fetched from public APIs (SoChain for hashrate, CoinGecko for prices).  
-        Values are approximate and for educational use.
-      </p>
     </div>
 
     <div class="card">
       <h2>Litecoin Mining Calculator</h2>
       <p class="muted">
-        Enter your miner specs and costs. Calculator includes merged Dogecoin rewards.
+        Enter your miner specs and costs. Calculator includes merged Dogecoin rewards and
+        converts everything into your chosen payout coin.
       </p>
 
       <form id="miningForm">
@@ -240,18 +231,6 @@
           <div class="form-row">
             <label for="energyCost">Energy Cost (USD / kWh)</label>
             <input type="number" id="energyCost" step="0.001" placeholder="e.g. 0.07" value="0.07" />
-          </div>
-        </div>
-
-        <div class="form-row-inline">
-          <div class="form-row">
-            <label for="ltcPrice">LTC Price (USD)</label>
-            <input type="number" id="ltcPrice" step="0.01" placeholder="auto-filled from feed" />
-          </div>
-
-          <div class="form-row">
-            <label for="dogePrice">DOGE Price (USD)</label>
-            <input type="number" id="dogePrice" step="0.0001" placeholder="auto-filled from feed" />
           </div>
         </div>
 
