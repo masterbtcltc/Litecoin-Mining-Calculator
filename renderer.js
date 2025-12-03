@@ -1,12 +1,12 @@
 const LTC_BLOCK_REWARD=6.25,LTC_BLOCK_TIME_MIN=2.5,DOGE_BLOCK_REWARD=10000,DOGE_BLOCK_TIME_MIN=1;
 const HASHRATE_URL="https://litecoinspace.org/api/v1/mining/hashrate/3d";
-const PRICE_PROXY="https://api.allorigins.win/get?url="+encodeURIComponent("https://api.coingecko.com/api/v3/simple/price?ids=litecoin,dogecoin&vs_currencies=usd");
+const COINBASE_URL="https://api.coinbase.com/v2/exchange-rates?currency=USD";
 
 function fmt(n,d=4){return isNaN(n)?'-':n.toLocaleString(void 0,{minimumFractionDigits:d,maximumFractionDigits:d});}
 function usd(n){return isNaN(n)?'-':'$'+n.toLocaleString(void 0,{minimumFractionDigits:2,maximumFractionDigits:2});}
 function years(d){if(d<30)return"< 1 month";if(d<365)return fmt(d/30.42,1)+" months";return fmt(d/365.25,2)+" years";}
 
-let netHash={ltc:NaN,doge:NaN}, prices={ltc:NaN,doge:NaN};
+let netHash={ltc:NaN,doge:NaN},prices={ltc:NaN,doge:NaN};
 
 async function getHashrate(){
   try{
@@ -24,11 +24,10 @@ async function getHashrate(){
 
 async function getPrices(){
   try{
-    const r=await fetch(PRICE_PROXY);
-    const p=await r.json();
-    const data=JSON.parse(p.contents);
-    prices.ltc=data.litecoin.usd;
-    prices.doge=data.dogecoin.usd;
+    const r=await fetch(COINBASE_URL);
+    const j=await r.json();
+    prices.ltc=j.data.rates.LTC;
+    prices.doge=j.data.rates.DOGE;
     document.getElementById("priceSummary").innerHTML=`
       <div class="price-line"><img src="ltclogo.png" alt="LTC" class="price-logo" onerror="this.style.display='none'"><strong>LTC Price:</strong> ${usd(prices.ltc)}</div>
       <div class="price-line" style="margin-top:8px;"><img src="dogelogo.png" alt="DOGE" class="price-logo" onerror="this.style.display='none'"><strong>DOGE Price:</strong> ${usd(prices.doge)}</div>
@@ -59,18 +58,15 @@ function calc(p){
 document.addEventListener("DOMContentLoaded",()=>{
   const results=document.getElementById("results");
   const form=document.getElementById("miningForm");
-
   Promise.all([getHashrate(),getPrices()]);
-
   document.querySelectorAll(".preset-btn").forEach(b=>{
     b.addEventListener("click",()=>{
       const mh=parseInt(b.dataset.hash);
-      document.getElementById("hashRate").value=(mh/1000).toFixed(2).replace(/0+$/,"").replace(/\.$/,"");
+      document.getElementById("hashRate").value=(mh/1000).toFixed(2).replace(/\.?0+$/,"");
       document.getElementById("powerUsage").value=b.dataset.power;
       form.dispatchEvent(new Event("submit"));
     });
   });
-
   form.addEventListener("submit",e=>{
     e.preventDefault();
     const hash=parseFloat(document.getElementById("hashRate").value)||0;
@@ -79,12 +75,9 @@ document.addEventListener("DOMContentLoaded",()=>{
     const elec=parseFloat(document.getElementById("energyCost").value)||0;
     const cost=parseFloat(document.getElementById("minerCost").value)||0;
     const coin=document.getElementById("payoutCoin").value;
-
     if(!hash||!watts){results.innerHTML='<p class="error">Enter hash rate and power</p>';return;}
     if(isNaN(netHash.ltc)||isNaN(prices.ltc)){results.innerHTML='<p class="error">Loading live data…</p>';return;}
-
     const r=calc({hash,watts,fee,electricity:elec,cost,coin});
-
     let html=`
       <p><strong>Daily Rewards (after fee):</strong></p>
       <p>Litecoin: ${fmt(r.netLtc,6)} LTC</p>
