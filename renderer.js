@@ -26,8 +26,9 @@ async function getPrices(){
   try{
     const r=await fetch(COINBASE_URL);
     const j=await r.json();
-    prices.ltc=j.data.rates.LTC;
-    prices.doge=j.data.rates.DOGE;
+    const rates=j.data.rates;
+    prices.ltc=1/parseFloat(rates.LTC);
+    prices.doge=1/parseFloat(rates.DOGE);
     document.getElementById("priceSummary").innerHTML=`
       <div class="price-line"><img src="ltclogo.png" alt="LTC" class="price-logo" onerror="this.style.display='none'"><strong>LTC Price:</strong> ${usd(prices.ltc)}</div>
       <div class="price-line" style="margin-top:8px;"><img src="dogelogo.png" alt="DOGE" class="price-logo" onerror="this.style.display='none'"><strong>DOGE Price:</strong> ${usd(prices.doge)}</div>
