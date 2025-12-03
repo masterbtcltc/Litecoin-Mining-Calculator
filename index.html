@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Litecoin / Dogecoin Mining Calculator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      font-family: Arial, sans-serif;
+      background: #050016;
+      color: #ffffff;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+    }
+
+    .wrapper {
+      max-width: 600px;
+      width: 100%;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+
+    .card {
+      background: #1a0738;
+      border-radius: 12px;
+      padding: 18px 16px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+      margin-bottom: 16px;
+    }
+
+    h1, h2, h3 {
+      margin: 0 0 10px 0;
+    }
+
+    .hashrate-header {
+      font-size: 15px;
+      line-height: 1.4;
+    }
+
+    .hashrate-header strong {
+      font-size: 16px;
+    }
+
+    .form-row {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 10px;
+    }
+
+    .form-row label {
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .form-row input,
+    .form-row select {
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid #5f3fb3;
+      background: #0b021a;
+      color: #ffffff;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    .form-row input:focus,
+    .form-row select:focus {
+      outline: none;
+      border-color: #9b7cff;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      background: linear-gradient(135deg, #4d8cff, #9a7bff);
+      color: #ffffff;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+
+    .btn:hover {
+      opacity: 0.95;
+    }
+
+    .results p {
+      margin: 4px 0;
+      font-size: 14px;
+    }
+
+    .results strong {
+      font-size: 15px;
+    }
+
+    .small-note {
+      font-size: 11px;
+      opacity: 0.8;
+      margin-top: 6px;
+    }
+
+    @media (min-width: 640px) {
+      .form-row-inline {
+        display: flex;
+        gap: 10px;
+      }
+
+      .form-row-inline .form-row {
+        flex: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <!-- Network Hashrate Summary -->
+    <div class="card">
+      <h2>Litecoin / Dogecoin Network Hashrate</h2>
+      <div class="hashrate-header" id="hashrateSummary">
+        <!-- Filled by renderer.js -->
+      </div>
+      <div class="small-note">
+        Network values are static constants in <code>renderer.js</code>. Update them anytime to match current conditions.
+      </div>
+    </div>
+
+    <!-- Mining Calculator -->
+    <div class="card">
+      <h2>Litecoin Mining Calculator</h2>
+      <p style="font-size: 13px; margin-bottom: 10px;">
+        Enter your miner specs and costs. Calculator includes merged Dogecoin rewards.
+      </p>
+
+      <form id="miningForm">
+        <div class="form-row">
+          <label for="hashRate">Hash Rate (GH/s)</label>
+          <input type="number" id="hashRate" step="0.01" placeholder="e.g. 16" required />
+        </div>
+
+        <div class="form-row">
+          <label for="powerUsage">Power Usage (Watts)</label>
+          <input type="number" id="powerUsage" step="1" placeholder="e.g. 3360" required />
+        </div>
+
+        <div class="form-row-inline">
+          <div class="form-row">
+            <label for="poolFee">Mining Pool Fee (%)</label>
+            <input type="number" id="poolFee" step="0.01" placeholder="e.g. 1" value="1" />
+          </div>
+
+          <div class="form-row">
+            <label for="energyCost">Energy Cost (USD / kWh)</label>
+            <input type="number" id="energyCost" step="0.001" placeholder="e.g. 0.07" value="0.07" />
+          </div>
+        </div>
+
+        <div class="form-row-inline">
+          <div class="form-row">
+            <label for="ltcPrice">LTC Price (USD)</label>
+            <input type="number" id="ltcPrice" step="0.01" placeholder="optional for USD + payout calc" />
+          </div>
+
+          <div class="form-row">
+            <label for="dogePrice">DOGE Price (USD)</label>
+            <input type="number" id="dogePrice" step="0.0001" placeholder="optional for USD + payout calc" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label for="payoutCoin">Desired Payout Coin</label>
+          <select id="payoutCoin">
+            <option value="LTC">Litecoin (LTC)</option>
+            <option value="DOGE">Dogecoin (DOGE)</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn">Calculate Rewards</button>
+      </form>
+
+      <div class="results" id="results" style="margin-top: 14px;">
+        <!-- Filled by renderer.js -->
+      </div>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>
