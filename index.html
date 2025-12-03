@@ -10,21 +10,18 @@
       color: #ffffff;
       background: radial-gradient(circle at top, #1f6bff 0, #001226 45%, #00040b 100%);
     }
-
     body {
       margin: 0;
       padding: 0;
       display: flex;
       justify-content: center;
     }
-
     .wrapper {
       max-width: 720px;
       width: 100%;
       padding: 18px 12px 40px;
       box-sizing: border-box;
     }
-
     .card {
       background: rgba(1, 10, 26, 0.95);
       border-radius: 18px;
@@ -34,30 +31,24 @@
       border: 1px solid rgba(40, 116, 255, 0.7);
       backdrop-filter: blur(6px);
     }
-
     h1, h2, h3 {
       margin: 0 0 10px 0;
       letter-spacing: 0.03em;
     }
-
     h1 {
       font-size: 24px;
     }
-
     h2 {
       font-size: 20px;
     }
-
     .muted {
       font-size: 13px;
       opacity: 0.8;
     }
-
     .hashrate-header p {
       margin: 4px 0;
       font-size: 14px;
     }
-
     .pill {
       display: inline-flex;
       align-items: center;
@@ -69,7 +60,6 @@
       border: 1px solid rgba(64, 149, 255, 0.9);
       margin-top: 6px;
     }
-
     .live-dot {
       width: 7px;
       height: 7px;
@@ -77,18 +67,15 @@
       background: #2cf0ff;
       box-shadow: 0 0 8px #2cf0ff;
     }
-
     .form-row {
       display: flex;
       flex-direction: column;
       margin-bottom: 10px;
     }
-
     .form-row label {
       font-size: 13px;
       margin-bottom: 4px;
     }
-
     .form-row input,
     .form-row select {
       padding: 8px 10px;
@@ -99,20 +86,17 @@
       font-size: 14px;
       box-sizing: border-box;
     }
-
     .form-row input:focus,
     .form-row select:focus {
       outline: none;
       border-color: #9ed0ff;
       box-shadow: 0 0 0 1px rgba(158, 208, 255, 0.5);
     }
-
     .form-row-inline {
       display: flex;
       flex-direction: column;
       gap: 10px;
     }
-
     @media (min-width: 640px) {
       .form-row-inline {
         flex-direction: row;
@@ -121,7 +105,6 @@
         flex: 1;
       }
     }
-
     .btn {
       width: 100%;
       padding: 11px;
@@ -136,45 +119,30 @@
       transition: transform 0.08s ease-out, box-shadow 0.08s ease-out, opacity 0.08s;
       box-shadow: 0 14px 30px rgba(0, 39, 95, 0.9);
     }
-
     .btn:hover {
       opacity: 0.96;
       transform: translateY(-1px);
       box-shadow: 0 18px 42px rgba(0, 39, 95, 1);
     }
-
     .results p {
       margin: 4px 0;
       font-size: 14px;
     }
-
     .results strong {
       font-size: 15px;
     }
-
     .divider {
       border: 0;
       border-top: 1px dashed rgba(86, 143, 219, 0.7);
       margin: 10px 0;
     }
-
     .small-note {
       font-size: 11px;
       opacity: 0.8;
       margin-top: 6px;
     }
-
     .error {
       color: #ff7676;
-    }
-
-    code {
-      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco,
-        Consolas, "Liberation Mono", "Courier New", monospace;
-      font-size: 11px;
-      background: rgba(0, 0, 0, 0.32);
-      padding: 2px 4px;
-      border-radius: 4px;
     }
   </style>
 </head>
@@ -186,42 +154,40 @@
         <span class="live-dot"></span>
         <span>Live hashrate &amp; price feed</span>
       </div>
-
       <div id="hashrateSummary" class="hashrate-header" style="margin-top: 10px;"></div>
       <hr class="divider" />
       <div id="priceSummary" class="hashrate-header"></div>
     </div>
-
     <div class="card">
       <h2>Litecoin Mining Calculator</h2>
       <p class="muted">
         Enter your miner specs and costs. Calculator includes merged Dogecoin rewards and
         converts everything into your chosen payout coin.
       </p>
-
       <form id="miningForm">
         <div class="form-row">
           <label for="hashRate">Hash Rate (GH/s)</label>
           <input type="number" id="hashRate" step="0.01" placeholder="e.g. 16" required />
         </div>
-
         <div class="form-row">
           <label for="powerUsage">Power Usage (Watts)</label>
           <input type="number" id="powerUsage" step="1" placeholder="e.g. 3360" required />
         </div>
-
         <div class="form-row-inline">
           <div class="form-row">
             <label for="poolFee">Mining Pool Fee (%)</label>
             <input type="number" id="poolFee" step="0.01" placeholder="e.g. 1" value="1" />
           </div>
-
           <div class="form-row">
             <label for="energyCost">Energy Cost (USD / kWh)</label>
             <input type="number" id="energyCost" step="0.001" placeholder="e.g. 0.07" value="0.07" />
           </div>
         </div>
-
+        <div class="form-row">
+          <label for="minerCost">Total Miner Cost (USD)</label>
+          <input type="number" id="minerCost" step="1" placeholder="e.g. 2500" />
+          <p class="small-note" style="margin-top: 4px;">Optional: for break-even and ROI calculation</p>
+        </div>
         <div class="form-row">
           <label for="payoutCoin">Desired Payout Coin</label>
           <select id="payoutCoin">
@@ -229,14 +195,11 @@
             <option value="DOGE">Dogecoin (DOGE)</option>
           </select>
         </div>
-
         <button type="submit" class="btn">Calculate Rewards</button>
       </form>
-
       <div class="results" id="results" style="margin-top: 14px;"></div>
     </div>
   </div>
-
   <script src="renderer.js"></script>
 </body>
 </html>
