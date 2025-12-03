@@ -8,7 +8,7 @@
     :root {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       color: #ffffff;
-      background: radial-gradient(circle at top, #5f5bff 0, #050016 45%, #000000 100%);
+      background: radial-gradient(circle at top, #1f6bff 0, #001226 45%, #00040b 100%);
     }
 
     body {
@@ -26,12 +26,12 @@
     }
 
     .card {
-      background: rgba(8, 0, 35, 0.95);
+      background: rgba(1, 10, 26, 0.95);
       border-radius: 18px;
       padding: 18px 16px 20px;
-      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.6);
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.7);
       margin-bottom: 18px;
-      border: 1px solid rgba(140, 110, 255, 0.45);
+      border: 1px solid rgba(40, 116, 255, 0.7);
       backdrop-filter: blur(6px);
     }
 
@@ -65,8 +65,8 @@
       padding: 5px 10px;
       border-radius: 999px;
       font-size: 11px;
-      background: rgba(92, 73, 255, 0.22);
-      border: 1px solid rgba(159, 130, 255, 0.8);
+      background: rgba(7, 64, 125, 0.4);
+      border: 1px solid rgba(64, 149, 255, 0.9);
       margin-top: 6px;
     }
 
@@ -74,23 +74,8 @@
       width: 7px;
       height: 7px;
       border-radius: 50%;
-      background: #25ff9b;
-      box-shadow: 0 0 6px #25ff9b;
-    }
-
-    .small-btn {
-      border: none;
-      border-radius: 999px;
-      padding: 4px 10px;
-      font-size: 11px;
-      cursor: pointer;
-      margin-left: 6px;
-      background: rgba(148, 130, 255, 0.2);
-      color: #ffffff;
-    }
-
-    .small-btn:hover {
-      background: rgba(148, 130, 255, 0.4);
+      background: #2cf0ff;
+      box-shadow: 0 0 8px #2cf0ff;
     }
 
     .form-row {
@@ -108,8 +93,8 @@
     .form-row select {
       padding: 8px 10px;
       border-radius: 8px;
-      border: 1px solid rgba(175, 149, 255, 0.7);
-      background: #09001e;
+      border: 1px solid rgba(80, 143, 255, 0.8);
+      background: #010a16;
       color: #ffffff;
       font-size: 14px;
       box-sizing: border-box;
@@ -118,8 +103,8 @@
     .form-row input:focus,
     .form-row select:focus {
       outline: none;
-      border-color: #d2c4ff;
-      box-shadow: 0 0 0 1px rgba(210, 196, 255, 0.4);
+      border-color: #9ed0ff;
+      box-shadow: 0 0 0 1px rgba(158, 208, 255, 0.5);
     }
 
     .form-row-inline {
@@ -142,20 +127,20 @@
       padding: 11px;
       border-radius: 999px;
       border: none;
-      background: linear-gradient(135deg, #5a8dff, #b98cff);
+      background: linear-gradient(135deg, #1f7bff, #4fd2ff);
       color: #ffffff;
       font-size: 15px;
       font-weight: 600;
       cursor: pointer;
       margin-top: 4px;
       transition: transform 0.08s ease-out, box-shadow 0.08s ease-out, opacity 0.08s;
-      box-shadow: 0 14px 30px rgba(17, 0, 93, 0.75);
+      box-shadow: 0 14px 30px rgba(0, 39, 95, 0.9);
     }
 
     .btn:hover {
       opacity: 0.96;
       transform: translateY(-1px);
-      box-shadow: 0 18px 42px rgba(17, 0, 93, 0.9);
+      box-shadow: 0 18px 42px rgba(0, 39, 95, 1);
     }
 
     .results p {
@@ -169,7 +154,7 @@
 
     .divider {
       border: 0;
-      border-top: 1px dashed rgba(167, 141, 255, 0.4);
+      border-top: 1px dashed rgba(86, 143, 219, 0.7);
       margin: 10px 0;
     }
 
@@ -177,6 +162,10 @@
       font-size: 11px;
       opacity: 0.8;
       margin-top: 6px;
+    }
+
+    .error {
+      color: #ff7676;
     }
 
     code {
