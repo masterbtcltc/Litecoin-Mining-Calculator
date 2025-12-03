@@ -42,30 +42,17 @@ async function fetchNetworkHashrates() {
     if (!res.ok) {
       throw new Error("LitecoinSpace response not ok: " + res.status);
     }
-
     const data = await res.json();
-    const arr = data?.hashrates;
 
-    if (!Array.isArray(arr) || arr.length === 0) {
-      throw new Error("Invalid hashrate array from LitecoinSpace");
-    }
-
-    // Take the last entry in the series as the most recent average hashrate
-    const latest = arr[arr.length - 1];
-    const raw =
-      typeof latest.avgHashrate === "number"
-        ? latest.avgHashrate
-        : latest.hashrate;
-
+    // Updated: Use currentHashrate (in H/s)
+    const raw = data?.currentHashrate;
     if (typeof raw !== "number" || raw <= 0) {
-      throw new Error("Invalid hashrate value from LitecoinSpace");
+      throw new Error("Invalid currentHashrate from LitecoinSpace");
     }
 
-    // LitecoinSpace returns hashrate in H/s; convert H/s -> TH/s
+    // Convert H/s -> TH/s
     const ltcTh = raw / 1e12;
-    // DOGE is merge-mined with LTC; we assume same Scrypt hashrate internally
-    const dogeTh = ltcTh;
-
+    const dogeTh = ltcTh; // Still valid for merge-mining
     return { ltcTh, dogeTh };
   } catch (err) {
     console.error("Error fetching hashrates from LitecoinSpace:", err);
