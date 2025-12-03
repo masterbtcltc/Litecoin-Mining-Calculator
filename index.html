@@ -72,8 +72,7 @@
     <div class="card">
       <h2>Litecoin Mining Calculator</h2>
       <p class="muted">
-        Enter your miner specs and costs. Calculator includes merged Dogecoin rewards and
-        converts everything into your chosen payout coin.
+        Enter your miner specs. Includes merged Dogecoin rewards + payout conversion.
       </p>
 
       <form id="miningForm">
@@ -94,21 +93,21 @@
         </div>
         <div class="form-row-inline">
           <div class="form-row">
-            <label for="poolFee">Mining Pool Fee (%)</label>
+            <label for="poolFee">Pool Fee (%)</label>
             <input type="number" id="poolFee" step="0.01" value="1" />
           </div>
           <div class="form-row">
-            <label for="energyCost">Energy Cost (USD / kWh)</label>
+            <label for="energyCost">Energy Cost (USD/kWh)</label>
             <input type="number" id="energyCost" step="0.001" value="0.07" />
           </div>
         </div>
         <div class="form-row">
           <label for="minerCost">Total Miner Cost (USD)</label>
           <input type="number" id="minerCost" step="1" placeholder="e.g. 2500" />
-          <p class="small-note" style="margin-top:4px;">Optional: for break-even calculation</p>
+          <p class="small-note" style="margin-top: 4px;">Optional: for break-even calculation</p>
         </div>
         <div class="form-row">
-          <label for="payoutCoin">Desired Payout Coin</label>
+          <label for="payoutCoin">Payout Coin</label>
           <select id="payoutCoin">
             <option value="LTC">Litecoin (LTC)</option>
             <option value="DOGE">Dogecoin (DOGE)</option>
