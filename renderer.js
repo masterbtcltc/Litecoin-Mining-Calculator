@@ -10,8 +10,7 @@ const DOGE_BLOCK_REWARD = 10000;        // DOGE per block
 const DOGE_BLOCK_TIME_MIN = 1;          // minutes
 
 // API endpoints
-const SOCHAIN_LTC_INFO_URL = "https://chain.so/api/v3/get_info/LTC";
-const SOCHAIN_DOGE_INFO_URL = "https://chain.so/api/v3/get_info/DOGE";
+const MINERSTAT_LTC_URL = "https://api.minerstat.com/v2/coins?list=LTC";
 const COINGECKO_SIMPLE_PRICE =
   "https://api.coingecko.com/api/v3/simple/price?ids=litecoin,dogecoin&vs_currencies=usd";
 
@@ -37,32 +36,30 @@ function formatUsd(num) {
 
 async function fetchNetworkHashrates() {
   try {
-    const [ltcRes, dogeRes] = await Promise.all([
-      fetch(SOCHAIN_LTC_INFO_URL),
-      fetch(SOCHAIN_DOGE_INFO_URL)
-    ]);
-
-    if (!ltcRes.ok || !dogeRes.ok) {
-      throw new Error("Network response was not ok");
+    const res = await fetch(MINERSTAT_LTC_URL);
+    if (!res.ok) {
+      throw new Error("Minerstat response not ok: " + res.status);
     }
 
-    const ltcData = await ltcRes.json();
-    const dogeData = await dogeRes.json();
+    const data = await res.json();
+    // Minerstat coins API returns an array; we requested list=LTC so index 0 is LTC
+    const ltc = Array.isArray(data)
+      ? data.find((c) => c.coin === "LTC") || data[0]
+      : null;
 
-    const ltcHps = ltcData?.data?.hashrate;
-    const dogeHps = dogeData?.data?.hashrate;
+    const rawHashrate = ltc?.network_hashrate;
 
-    if (typeof ltcHps !== "number" || ltcHps <= 0 ||
-        typeof dogeHps !== "number" || dogeHps <= 0) {
-      throw new Error("Invalid hashrate data");
+    // network_hashrate is in H/s :contentReference[oaicite:1]{index=1}
+    if (typeof rawHashrate !== "number" || rawHashrate <= 0) {
+      throw new Error("Invalid network_hashrate from Minerstat");
     }
 
-    const ltcTh = ltcHps / 1e12;   // H/s -> TH/s
-    const dogeTh = dogeHps / 1e12; // H/s -> TH/s
+    const ltcTh = rawHashrate / 1e12; // H/s -> TH/s
+    const dogeTh = ltcTh;             // merge-mined: assume same Scrypt hashrate
 
     return { ltcTh, dogeTh };
   } catch (err) {
-    console.error("Error fetching hashrates:", err);
+    console.error("Error fetching hashrates from Minerstat:", err);
     return { ltcTh: NaN, dogeTh: NaN };
   }
 }
@@ -71,20 +68,24 @@ async function fetchPrices() {
   try {
     const res = await fetch(COINGECKO_SIMPLE_PRICE);
     if (!res.ok) {
-      throw new Error("Price response not ok");
+      throw new Error("Price response not ok: " + res.status);
     }
     const data = await res.json();
     const ltcUsd = data?.litecoin?.usd;
     const dogeUsd = data?.dogecoin?.usd;
 
-    if (typeof ltcUsd !== "number" || ltcUsd <= 0 ||
-        typeof dogeUsd !== "number" || dogeUsd <= 0) {
+    if (
+      typeof ltcUsd !== "number" ||
+      ltcUsd <= 0 ||
+      typeof dogeUsd !== "number" ||
+      dogeUsd <= 0
+    ) {
       throw new Error("Invalid price data");
     }
 
     return { ltcUsd, dogeUsd };
   } catch (err) {
-    console.error("Error fetching prices:", err);
+    console.error("Error fetching prices from CoinGecko:", err);
     return { ltcUsd: NaN, dogeUsd: NaN };
   }
 }
@@ -261,7 +262,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!hashRateGH || !powerW) {
       resultsEl.innerHTML =
-        "<p class=\"error\">Please enter at least hash rate and power usage.</p>";
+        '<p class="error">Please enter at least hash rate and power usage.</p>';
       return;
     }
 
@@ -270,13 +271,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (isNaN(ltcTh) || isNaN(dogeTh)) {
       resultsEl.innerHTML =
-        "<p class=\"error\">Network hashrate data is not available. Please reload the page.</p>";
+        '<p class="error">Network hashrate data is not available. Please reload the page.</p>';
       return;
     }
 
     if (isNaN(ltcUsd) || isNaN(dogeUsd)) {
       resultsEl.innerHTML =
-        "<p class=\"error\">Price data is not available. Please reload the page.</p>";
+        '<p class="error">Price data is not available. Please reload the page.</p>';
       return;
     }
 
