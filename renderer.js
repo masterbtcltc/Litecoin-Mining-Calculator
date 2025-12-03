@@ -1,191 +1,108 @@
-// ---------------------- CONFIG & CONSTANTS ----------------------
-const LTC_BLOCK_REWARD = 6.25;
-const LTC_BLOCK_TIME_MIN = 2.5;
-const DOGE_BLOCK_REWARD = 10000;
-const DOGE_BLOCK_TIME_MIN = 1;
+const LTC_BLOCK_REWARD=6.25,LTC_BLOCK_TIME_MIN=2.5,DOGE_BLOCK_REWARD=10000,DOGE_BLOCK_TIME_MIN=1;
+const HASHRATE_URL="https://litecoinspace.org/api/v1/mining/hashrate/3d";
+const PRICE_PROXY="https://api.allorigins.win/get?url="+encodeURIComponent("https://api.coingecko.com/api/v3/simple/price?ids=litecoin,dogecoin&vs_currencies=usd");
 
-// These URLs work 100% on GitHub Pages (CORS fixed)
-const LITESPACE_HASHRATE_URL = "https://litecoinspace.org/api/v1/mining/hashrate/3d";
-const COINGECKO_PRICE_URL = "https://api.allorigins.win/get?url=" + encodeURIComponent(
-  "https://api.coingecko.com/api/v3/simple/price?ids=litecoin,dogecoin&vs_currencies=usd"
-);
+function fmt(n,d=4){return isNaN(n)?'-':n.toLocaleString(void 0,{minimumFractionDigits:d,maximumFractionDigits:d});}
+function usd(n){return isNaN(n)?'-':'$'+n.toLocaleString(void 0,{minimumFractionDigits:2,maximumFractionDigits:2});}
+function years(d){if(d<30)return"< 1 month";if(d<365)return fmt(d/30.42,1)+" months";return fmt(d/365.25,2)+" years";}
 
-function formatNumber(num, dec = 4) {
-  if (isNaN(num) || !isFinite(num)) return "-";
-  return num.toLocaleString(undefined, { minimumFractionDigits: dec, maximumFractionDigits: dec });
-}
-function formatUsd(num) {
-  if (isNaN(num) || !isFinite(num)) return "-";
-  return "$" + num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-function formatBreakEvenYears(days) {
-  if (days < 30) return "< 1 month";
-  if (days < 365) return formatNumber(days / 30.42, 1) + " months";
-  return formatNumber(days / 365.25, 2) + " years";
-}
+let netHash={ltc:NaN,doge:NaN}, prices={ltc:NaN,doge:NaN};
 
-// ---------------------- FETCH DATA ----------------------
-async function fetchNetworkHashrates() {
-  try {
-    const res = await fetch(LITESPACE_HASHRATE_URL);
-    const data = await res.json();
-    const raw = data?.currentHashrate;
-    if (typeof raw !== "number" || raw <= 0) return { ltcTh: NaN, dogeTh: NaN };
-    const th = raw / 1e12;
-    return { ltcTh: th, dogeTh: th };
-  } catch (e) {
-    console.error("Hashrate error:", e);
-    return { ltcTh: NaN, dogeTh: NaN };
+async function getHashrate(){
+  try{
+    const r=await fetch(HASHRATE_URL);
+    const j=await r.json();
+    const raw=j?.currentHashrate;
+    if(typeof raw!=="number")throw"bad";
+    const th=raw/1e12;
+    netHash={ltc:th,doge:th};
+    document.getElementById("hashrateSummary").innerHTML=`<p><strong>Litecoin Network Hashrate:</strong> ${fmt(th/1000,2)} PH/s</p><p class="small-note">From litecoinspace.org • Dogecoin merge-mined</p>`;
+  }catch{
+    document.getElementById("hashrateSummary").innerHTML=`<p class="error">Hashrate unavailable</p>`;
   }
 }
 
-async function fetchPrices() {
-  try {
-    const res = await fetch(COINGECKO_PRICE_URL);
-    const proxy = await res.json();
-    const data = JSON.parse(proxy.contents);
-    const ltc = data?.litecoin?.usd;
-    const doge = data?.dogecoin?.usd;
-    if (typeof ltc !== "number" || typeof doge !== "number") return { ltcUsd: NaN, dogeUsd: NaN };
-    return { ltcUsd: ltc, dogeUsd: doge };
-  } catch (e) {
-    console.error("Price error:", e);
-    return { ltcUsd: NaN, dogeUsd: NaN };
+async function getPrices(){
+  try{
+    const r=await fetch(PRICE_PROXY);
+    const p=await r.json();
+    const data=JSON.parse(p.contents);
+    prices.ltc=data.litecoin.usd;
+    prices.doge=data.dogecoin.usd;
+    document.getElementById("priceSummary").innerHTML=`
+      <div class="price-line"><img src="ltclogo.png" alt="LTC" class="price-logo" onerror="this.style.display='none'"><strong>LTC Price:</strong> ${usd(prices.ltc)}</div>
+      <div class="price-line" style="margin-top:8px;"><img src="dogelogo.png" alt="DOGE" class="price-logo" onerror="this.style.display='none'"><strong>DOGE Price:</strong> ${usd(prices.doge)}</div>
+    `;
+  }catch{
+    document.getElementById("priceSummary").innerHTML=`<p class="error">Prices unavailable</p>`;
   }
 }
 
-// ---------------------- UI STATE ----------------------
-let currentHashrates = { ltcTh: NaN, dogeTh: NaN };
-let currentPrices = { ltcUsd: NaN, dogeUsd: NaN };
-
-function renderHashrateSummary() {
-  const el = document.getElementById("hashrateSummary");
-  if (!el) return;
-  if (isNaN(currentHashrates.ltcTh)) {
-    el.innerHTML = `<p class="error"><strong>Error:</strong> Hashrate unavailable</p>`;
-    return;
-  }
-  const ph = currentHashrates.ltcTh / 1000;
-  el.innerHTML = `
-    <p><strong>Litecoin Network Hashrate:</strong> ${formatNumber(ph, 2)} PH/s</p>
-    <p class="small-note">From litecoinspace.org • Dogecoin merge-mined</p>
-  `;
+function calc(p){
+  const th=p.hash/1000;
+  const ltcDay=LTC_BLOCK_REWARD*(1440/LTC_BLOCK_TIME_MIN);
+  const dogeDay=DOGE_BLOCK_REWARD*(1440/DOGE_BLOCK_TIME_MIN);
+  const ltcPerTh=ltcDay/netHash.ltc;
+  const dogePerTh=dogeDay/netHash.doge;
+  const fee=1-(p.fee||0)/100;
+  const netLtc=th*ltcPerTh*fee;
+  const netDoge=th*dogePerTh*fee;
+  const powerCost=(p.watts/1000)*24*p.electricity;
+  const revenue=netLtc*prices.ltc+netDoge*prices.doge;
+  const profit=revenue-powerCost;
+  const payout=p.coin==="LTC"?revenue/prices.ltc:revenue/prices.doge;
+  let breakEven=NaN;
+  if(p.cost>0&&profit>0)breakEven=p.cost/profit;
+  return {netLtc,netDoge,powerCost,revenue,profit,payout,breakEven};
 }
 
-function renderPriceSummary() {
-  const el = document.getElementById("priceSummary");
-  if (!el) return;
-  if (isNaN(currentPrices.ltcUsd) || isNaN(currentPrices.dogeUsd)) {
-    el.innerHTML = `<p class="error"><strong>Error:</strong> Prices unavailable</p>`;
-    return;
-  }
-  el.innerHTML = `
-    <div class="price-line">
-      <img src="ltclogo.png" alt="LTC" class="price-logo">
-      <strong>LTC Price:</strong> ${formatUsd(currentPrices.ltcUsd)}
-    </div>
-    <div class="price-line" style="margin-top:8px;">
-      <img src="dogelogo.png" alt="DOGE" class="price-logo">
-      <strong>DOGE Price:</strong> ${formatUsd(currentPrices.dogeUsd)}
-    </div>
-  `;
-}
+document.addEventListener("DOMContentLoaded",()=>{
+  const results=document.getElementById("results");
+  const form=document.getElementById("miningForm");
 
-// ---------------------- CALCULATION ----------------------
-function calculateRewards(p) {
-  const minerTH = p.hashRateGH / 1000;
-  const ltcDaily = LTC_BLOCK_REWARD * (1440 / LTC_BLOCK_TIME_MIN);
-  const dogeDaily = DOGE_BLOCK_REWARD * (1440 / DOGE_BLOCK_TIME_MIN);
-  const ltcPerTh = ltcDaily / p.ltcNetworkTh;
-  const dogePerTh = dogeDaily / p.dogeNetworkTh;
-  const fee = 1 - (p.poolFeePercent || 0) / 100;
-  const netLtc = minerTH * ltcPerTh * fee;
-  const netDoge = minerTH * dogePerTh * fee;
-  const powerCost = (p.powerW / 1000) * 24 * p.energyCostKWh;
-  const revenueUsd = netLtc * p.ltcPriceUsd + netDoge * p.dogePriceUsd;
-  const profitUsd = revenueUsd - powerCost;
-  const payoutAmount = p.payoutCoin === "LTC" ? revenueUsd / p.ltcPriceUsd : revenueUsd / p.dogePriceUsd;
-  let breakEvenDays = NaN;
-  if (p.minerCostUsd > 0 && profitUsd > 0) breakEvenDays = p.minerCostUsd / profitUsd;
-  return { netLtc, netDoge, powerCost, revenueUsd, profitUsd, payoutAmount, breakEvenDays };
-}
+  Promise.all([getHashrate(),getPrices()]);
 
-// ---------------------- MAIN ----------------------
-async function refreshLiveData() {
-  const [hr, pr] = await Promise.all([fetchNetworkHashrates(), fetchPrices()]);
-  currentHashrates = hr;
-  currentPrices = pr;
-  renderHashrateSummary();
-  renderPriceSummary();
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  const resultsEl = document.getElementById("results");
-  const form = document.getElementById("miningForm");
-  refreshLiveData();
-
-  // Preset miner buttons
-  document.querySelectorAll(".preset-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const mh = parseInt(btn.dataset.hash);
-      const gh = (mh / 1000).toFixed(2).replace(/\.?0+$/, "");
-      document.getElementById("hashRate").value = gh;
-      document.getElementById("powerUsage").value = btn.dataset.power;
+  document.querySelectorAll(".preset-btn").forEach(b=>{
+    b.addEventListener("click",()=>{
+      const mh=parseInt(b.dataset.hash);
+      document.getElementById("hashRate").value=(mh/1000).toFixed(2).replace(/0+$/,"").replace(/\.$/,"");
+      document.getElementById("powerUsage").value=b.dataset.power;
       form.dispatchEvent(new Event("submit"));
     });
   });
 
-  form.addEventListener("submit", e => {
+  form.addEventListener("submit",e=>{
     e.preventDefault();
-    const hashRateGH = parseFloat(document.getElementById("hashRate").value) || 0;
-    const powerW = parseFloat(document.getElementById("powerUsage").value) || 0;
-    const poolFee = parseFloat(document.getElementById("poolFee").value) || 0;
-    const energyCost = parseFloat(document.getElementById("energyCost").value) || 0;
-    const minerCost = parseFloat(document.getElementById("minerCost").value) || 0;
-    const payoutCoin = document.getElementById("payoutCoin").value;
+    const hash=parseFloat(document.getElementById("hashRate").value)||0;
+    const watts=parseFloat(document.getElementById("powerUsage").value)||0;
+    const fee=parseFloat(document.getElementById("poolFee").value)||0;
+    const elec=parseFloat(document.getElementById("energyCost").value)||0;
+    const cost=parseFloat(document.getElementById("minerCost").value)||0;
+    const coin=document.getElementById("payoutCoin").value;
 
-    if (!hashRateGH || !powerW) {
-      resultsEl.innerHTML = '<p class="error">Enter hash rate and power usage.</p>';
-      return;
-    }
-    if (isNaN(currentHashrates.ltcTh) || isNaN(currentPrices.ltcUsd)) {
-      resultsEl.innerHTML = '<p class="error">Live data loading… Please wait.</p>';
-      return;
-    }
+    if(!hash||!watts){results.innerHTML='<p class="error">Enter hash rate and power</p>';return;}
+    if(isNaN(netHash.ltc)||isNaN(prices.ltc)){results.innerHTML='<p class="error">Loading live data…</p>';return;}
 
-    const r = calculateRewards({
-      hashRateGH, powerW, poolFeePercent: poolFee, energyCostKWh: energyCost,
-      minerCostUsd: minerCost, ltcPriceUsd: currentPrices.ltcUsd, dogePriceUsd: currentPrices.dogeUsd,
-      payoutCoin, ltcNetworkTh: currentHashrates.ltcTh, dogeNetworkTh: currentHashrates.dogeTh
-    });
+    const r=calc({hash,watts,fee,electricity:elec,cost,coin});
 
-    let html = `
+    let html=`
       <p><strong>Daily Rewards (after fee):</strong></p>
-      <p>Litecoin: ${formatNumber(r.netLtc, 6)} LTC</p>
-      <p>Dogecoin: ${formatNumber(r.netDoge, 2)} DOGE</p>
-      <p><strong>Power Cost:</strong> ${formatUsd(r.powerCost)}</p>
-      <p><strong>Revenue:</strong> ${formatUsd(r.revenueUsd)}</p>
-      <p><strong>Net Profit:</strong> ${formatUsd(r.profitUsd)}</p>
+      <p>Litecoin: ${fmt(r.netLtc,6)} LTC</p>
+      <p>Dogecoin: ${fmt(r.netDoge,2)} DOGE</p>
+      <p><strong>Power Cost:</strong> ${usd(r.powerCost)}</p>
+      <p><strong>Revenue:</strong> ${usd(r.revenue)}</p>
+      <p><strong>Net Profit:</strong> ${usd(r.profit)}</p>
       <hr class="divider"/>
-      <p><strong>Payout in ${payoutCoin}:</strong> ${formatNumber(r.payoutAmount, payoutCoin === "LTC" ? 6 : 2)} ${payoutCoin}/day</p>
-      <p class="muted">≈ ${formatUsd(r.revenueUsd)} USD/day</p>
+      <p><strong>Payout in ${coin}:</strong> ${fmt(r.payout,coin==="LTC"?6:2)} ${coin}/day</p>
+      <p class="muted">≈ ${usd(r.revenue)} USD/day</p>
     `;
-
-    if (minerCost > 0) {
-      if (r.profitUsd > 0) {
-        html += `
-          <hr class="divider" style="margin:14px 0"/>
-          <p><strong>Break-even Time:</strong> ${formatBreakEvenYears(r.breakEvenDays)}</p>
-          <p class="small-note">Based on $${formatNumber(minerCost, 0)} cost</p>
-        `;
-      } else {
-        html += `
-          <hr class="divider" style="margin:14px 0"/>
-          <p class="error"><strong>Not profitable</strong> – daily loss ${formatUsd(-r.profitUsd)}</p>
-        `;
+    if(cost>0){
+      if(r.profit>0){
+        html+=`<hr class="divider" style="margin:14px 0"/><p><strong>Break-even:</strong> ${years(r.breakEven)}</p><p class="small-note">Based on $${fmt(cost,0)} cost</p>`;
+      }else{
+        html+=`<hr class="divider" style="margin:14px 0"/><p class="error"><strong>Not profitable</strong> – daily loss ${usd(-r.profit)}</p>`;
       }
     }
-
-    resultsEl.innerHTML = html;
+    results.innerHTML=html;
   });
 });
