@@ -52,10 +52,11 @@ function calc(p){
   const revenue = netLtc * p.priceLTC + netDoge * p.priceDOGE;
   const profit = revenue - powerCost;
   const monthlyProfit = profit * 30.42;
+  const yearlyProfit = profit * 365;
   const payout = p.coin === "LTC" ? revenue / p.priceLTC : revenue / p.priceDOGE;
   let breakEven = NaN;
   if (p.cost > 0 && profit > 0) breakEven = (p.cost * qty) / profit;
-  return {netLtc,netDoge,powerCost,revenue,profit,monthlyProfit,payout,breakEven,qty};
+  return {netLtc,netDoge,powerCost,revenue,profit,monthlyProfit,yearlyProfit,payout,breakEven,qty};
 }
 
 document.addEventListener("DOMContentLoaded",()=>{
@@ -101,6 +102,7 @@ document.addEventListener("DOMContentLoaded",()=>{
       <p><strong>Daily Revenue:</strong> ${usd(r.revenue)}</p>
       <p><strong>Daily Profit:</strong> ${usd(r.profit)}</p>
       <p><strong>Monthly Profit (30.42 days):</strong> ${usd(r.monthlyProfit)}</p>
+      <p><strong>Yearly Profit:</strong> ${usd(r.yearlyProfit)}</p>
       <hr class="divider"/>
       <p><strong>Payout in ${coin}:</strong> ${fmt(r.payout,coin==="LTC"?6:2)} ${coin}/day</p>
       <p class="muted">≈ ${usd(r.revenue)} USD/day • ${usd(r.monthlyProfit)}/month</p>
