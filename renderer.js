@@ -29,7 +29,6 @@ async function getPrices(){
     const rates=j.data.rates;
     livePrices.ltc=1/parseFloat(rates.LTC);
     livePrices.doge=1/parseFloat(rates.DOGE);
-    // Only show live prices at the top — never override with hypothetical
     document.getElementById("priceSummary").innerHTML=`
       <div class="price-line"><img src="ltclogo.png" alt="LTC" class="price-logo" onerror="this.style.display='none'"><strong>LTC Price:</strong> ${usd(livePrices.ltc)}</div>
       <div class="price-line" style="margin-top:8px;"><img src="dogelogo.png" alt="DOGE" class="price-logo" onerror="this.style.display='none'"><strong>DOGE Price:</strong> ${usd(livePrices.doge)}</div>
@@ -40,22 +39,23 @@ async function getPrices(){
 }
 
 function calc(p){
-  const th=p.hash/1000;
-  const ltcDay=LTC_BLOCK_REWARD*(1440/LTC_BLOCK_TIME_MIN);
-  const dogeDay=DOGE_BLOCK_REWARD*(1440/DOGE_BLOCK_TIME_MIN);
-  const ltcPerTh=ltcDay/netHash.ltc;
-  const dogePerTh=dogeDay/netHash.doge;
-  const fee=1-(p.fee||0)/100;
-  const netLtc=th*ltcPerTh*fee;
-  const netDoge=th*dogePerTh*fee;
-  const powerCost=(p.watts/1000)*24*p.electricity;
-  const revenue=netLtc*p.priceLTC+netDoge*p.priceDOGE;
-  const profit=revenue-powerCost;
-  const monthlyProfit=profit*30.42;
-  const payout=p.coin==="LTC"?revenue/p.priceLTC:revenue/p.priceDOGE;
-  let breakEven=NaN;
-  if(p.cost>0&&profit>0)breakEven=p.cost/profit;
-  return {netLtc,netDoge,powerCost,revenue,profit,monthlyProfit,payout,breakEven};
+  const qty = p.qty || 1;
+  const th = (p.hash * qty) / 1000;
+  const ltcDay = LTC_BLOCK_REWARD * (1440 / LTC_BLOCK_TIME_MIN);
+  const dogeDay = DOGE_BLOCK_REWARD * (1440 / DOGE_BLOCK_TIME_MIN);
+  const ltcPerTh = ltcDay / netHash.ltc;
+  const dogePerTh = dogeDay / netHash.doge;
+  const fee = 1 - (p.fee || 0) / 100;
+  const netLtc = th * ltcPerTh * fee;
+  const netDoge = th * dogePerTh * fee;
+  const powerCost = (p.watts * qty / 1000) * 24 * p.electricity;
+  const revenue = netLtc * p.priceLTC + netDoge * p.priceDOGE;
+  const profit = revenue - powerCost;
+  const monthlyProfit = profit * 30.42;
+  const payout = p.coin === "LTC" ? revenue / p.priceLTC : revenue / p.priceDOGE;
+  let breakEven = NaN;
+  if (p.cost > 0 && profit > 0) breakEven = (p.cost * qty) / profit;
+  return {netLtc,netDoge,powerCost,revenue,profit,monthlyProfit,payout,breakEven,qty};
 }
 
 document.addEventListener("DOMContentLoaded",()=>{
@@ -68,6 +68,7 @@ document.addEventListener("DOMContentLoaded",()=>{
     b.addEventListener("click",()=>{
       document.getElementById("hashRate").value=b.dataset.hash;
       document.getElementById("powerUsage").value=b.dataset.power;
+      document.getElementById("quantity").value=1;
       form.dispatchEvent(new Event("submit"));
     });
   });
@@ -76,6 +77,7 @@ document.addEventListener("DOMContentLoaded",()=>{
     e.preventDefault();
     const hash=parseFloat(document.getElementById("hashRate").value)||0;
     const watts=parseFloat(document.getElementById("powerUsage").value)||0;
+    const qty=parseFloat(document.getElementById("quantity").value)||1;
     const fee=parseFloat(document.getElementById("poolFee").value)||0;
     const elec=parseFloat(document.getElementById("energyCost").value)||0;
     const cost=parseFloat(document.getElementById("minerCost").value)||0;
@@ -89,10 +91,10 @@ document.addEventListener("DOMContentLoaded",()=>{
     if(!hash||!watts){results.innerHTML='<p class="error">Enter hash rate and power</p>';return;}
     if(isNaN(netHash.ltc)||isNaN(livePrices.ltc)){results.innerHTML='<p class="error">Loading live data…</p>';return;}
 
-    const r=calc({hash,watts,fee,electricity:elec,cost,coin,priceLTC,priceDOGE});
+    const r=calc({hash,watts,qty,fee,electricity:elec,cost,coin,priceLTC,priceDOGE});
 
     let html=`
-      <p><strong>Daily Rewards (after fee):</strong></p>
+      <p><strong>Daily Rewards (after fee) — ${fmt(qty,0)} miner${qty>1?'s':''}:</strong></p>
       <p>Litecoin: ${fmt(r.netLtc,6)} LTC</p>
       <p>Dogecoin: ${fmt(r.netDoge,2)} DOGE</p>
       <p><strong>Power Cost:</strong> ${usd(r.powerCost)}</p>
@@ -104,14 +106,13 @@ document.addEventListener("DOMContentLoaded",()=>{
       <p class="muted">≈ ${usd(r.revenue)} USD/day • ${usd(r.monthlyProfit)}/month</p>
     `;
 
-    // Show which price is being used
-    if(!isNaN(hypoLTC) || !isNaN(hypoDOGE)){
-      html+=`<p class="small-note" style="margin-top:8px;"><strong>Hypothetical prices used:</strong> LTC $${fmt(priceLTC,2)} • DOGE $${fmt(priceDOGE,4)}</p>`;
+    if(!isNaN(hypoLTC)||!isNaN(hypoDOGE)){
+      html+=`<p class="small-note"><strong>Hypothetical prices used:</strong> LTC $${fmt(priceLTC,2)} • DOGE $${fmt(priceDOGE,4)}</p>`;
     }
 
     if(cost>0){
       if(r.profit>0){
-        html+=`<hr class="divider" style="margin:14px 0"/><p><strong>Break-even:</strong> ${years(r.breakEven)}</p>`;
+        html+=`<hr class="divider" style="margin:14px 0"/><p><strong>Break-even (all ${fmt(qty,0)} miners):</strong> ${years(r.breakEven)}</p>`;
       }else{
         html+=`<hr class="divider" style="margin:14px 0"/><p class="error"><strong>Not profitable</strong></p>`;
       }
@@ -119,6 +120,7 @@ document.addEventListener("DOMContentLoaded",()=>{
     results.innerHTML=html;
   });
 
-  // Auto-recalculate when typing hypothetical prices
-  ["hypoLTC","hypoDOGE"].forEach(id=>document.getElementById(id)?.addEventListener("input",()=>form.dispatchEvent(new Event("submit"))));
+  ["hashRate","powerUsage","quantity","poolFee","energyCost","minerCost","hypoLTC","hypoDOGE","payoutCoin"].forEach(id=>
+    document.getElementById(id)?.addEventListener("input",()=>form.dispatchEvent(new Event("submit")))
+  );
 });
