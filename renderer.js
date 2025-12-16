@@ -5,6 +5,7 @@ const COINBASE_URL="https://api.coinbase.com/v2/exchange-rates?currency=USD";
 function fmt(n,d=4){return isNaN(n)?'-':n.toLocaleString(void 0,{minimumFractionDigits:d,maximumFractionDigits:d});}
 function usd(n){return isNaN(n)?'-':'$'+n.toLocaleString(void 0,{minimumFractionDigits:2,maximumFractionDigits:2});}
 function years(d){if(d<30)return"< 1 month";if(d<365)return fmt(d/30.42,1)+" months";return fmt(d/365.25,2)+" years";}
+function debounce(fn,delay){let t;return(...args)=>{clearTimeout(t);t=setTimeout(()=>fn(...args),delay);};}
 
 let netHash={ltc:NaN,doge:NaN},livePrices={ltc:NaN,doge:NaN};
 
@@ -51,8 +52,8 @@ function calc(p){
   const powerCost = (p.watts * qty / 1000) * 24 * p.electricity;
   const revenue = netLtc * p.priceLTC + netDoge * p.priceDOGE;
   const profit = revenue - powerCost;
-  const monthlyProfit = profit * 30.42;
-  const yearlyProfit = profit * 365;
+  const yearlyProfit = profit * 365.25;
+  const monthlyProfit = yearlyProfit / 12;
   const payout = p.coin === "LTC" ? revenue / p.priceLTC : revenue / p.priceDOGE;
   let breakEven = NaN;
   if (p.cost > 0 && profit > 0) breakEven = (p.cost * qty) / profit;
@@ -63,7 +64,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   const results=document.getElementById("results");
   const form=document.getElementById("miningForm");
 
-  Promise.all([getHashrate(),getPrices()]);
+  Promise.all([getHashrate(),getPrices()]).catch(err=>console.error("API load failed:",err));
 
   document.querySelectorAll(".preset-btn").forEach(b=>{
     b.addEventListener("click",()=>{
@@ -90,6 +91,9 @@ document.addEventListener("DOMContentLoaded",()=>{
     const priceDOGE=isNaN(hypoDOGE)?livePrices.doge:hypoDOGE;
 
     if(!hash||!watts){results.innerHTML='<p class="error">Enter hash rate and power</p>';return;}
+    if(hash<0||watts<0||qty<1||elec<0||cost<0){results.innerHTML='<p class="error">Values cannot be negative</p>';return;}
+    if(fee<0||fee>100){results.innerHTML='<p class="error">Pool fee must be 0-100%</p>';return;}
+    if(coin!=="LTC"&&coin!=="DOGE"){results.innerHTML='<p class="error">Invalid payout coin</p>';return;}
     if(isNaN(netHash.ltc)||isNaN(livePrices.ltc)){results.innerHTML='<p class="error">Loading live data…</p>';return;}
 
     const r=calc({hash,watts,qty,fee,electricity:elec,cost,coin,priceLTC,priceDOGE});
@@ -101,7 +105,7 @@ document.addEventListener("DOMContentLoaded",()=>{
       <p><strong>Power Cost:</strong> ${usd(r.powerCost)}</p>
       <p><strong>Daily Revenue:</strong> ${usd(r.revenue)}</p>
       <p><strong>Daily Profit:</strong> ${usd(r.profit)}</p>
-      <p><strong>Monthly Profit (30.42 days):</strong> ${usd(r.monthlyProfit)}</p>
+      <p><strong>Monthly Profit:</strong> ${usd(r.monthlyProfit)}</p>
       <p><strong>Yearly Profit:</strong> ${usd(r.yearlyProfit)}</p>
       <hr class="divider"/>
       <p><strong>Payout in ${coin}:</strong> ${fmt(r.payout,coin==="LTC"?6:2)} ${coin}/day</p>
@@ -122,7 +126,8 @@ document.addEventListener("DOMContentLoaded",()=>{
     results.innerHTML=html;
   });
 
+  const debouncedSubmit=debounce(()=>form.dispatchEvent(new Event("submit")),300);
   ["hashRate","powerUsage","quantity","poolFee","energyCost","minerCost","hypoLTC","hypoDOGE","payoutCoin"].forEach(id=>
-    document.getElementById(id)?.addEventListener("input",()=>form.dispatchEvent(new Event("submit")))
+    document.getElementById(id)?.addEventListener("input",debouncedSubmit)
   );
 });
