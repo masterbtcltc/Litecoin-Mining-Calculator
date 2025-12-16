@@ -50,6 +50,8 @@ function calc(p){
   const netLtc = th * ltcPerTh * fee;
   const netDoge = th * dogePerTh * fee;
   const powerCost = (p.watts * qty / 1000) * 24 * p.electricity;
+  const yearlyPowerCost = powerCost * 365.25;
+  const monthlyPowerCost = yearlyPowerCost / 12;
   const revenue = netLtc * p.priceLTC + netDoge * p.priceDOGE;
   const profit = revenue - powerCost;
   const yearlyProfit = profit * 365.25;
@@ -57,7 +59,7 @@ function calc(p){
   const payout = p.coin === "LTC" ? revenue / p.priceLTC : revenue / p.priceDOGE;
   let breakEven = NaN;
   if (p.cost > 0 && profit > 0) breakEven = (p.cost * qty) / profit;
-  return {netLtc,netDoge,powerCost,revenue,profit,monthlyProfit,yearlyProfit,payout,breakEven,qty};
+  return {netLtc,netDoge,powerCost,monthlyPowerCost,yearlyPowerCost,revenue,profit,monthlyProfit,yearlyProfit,payout,breakEven,qty};
 }
 
 document.addEventListener("DOMContentLoaded",()=>{
@@ -102,7 +104,9 @@ document.addEventListener("DOMContentLoaded",()=>{
       <p><strong>Daily Rewards (after fee) — ${fmt(qty,0)} miner${qty>1?'s':''}:</strong></p>
       <p>Litecoin: ${fmt(r.netLtc,6)} LTC</p>
       <p>Dogecoin: ${fmt(r.netDoge,2)} DOGE</p>
-      <p><strong>Power Cost:</strong> ${usd(r.powerCost)}</p>
+      <p><strong>Daily Power Cost:</strong> ${usd(r.powerCost)}</p>
+      <p><strong>Monthly Power Cost:</strong> ${usd(r.monthlyPowerCost)}</p>
+      <p><strong>Yearly Power Cost:</strong> ${usd(r.yearlyPowerCost)}</p>
       <p><strong>Daily Revenue:</strong> ${usd(r.revenue)}</p>
       <p><strong>Daily Profit:</strong> ${usd(r.profit)}</p>
       <p><strong>Monthly Profit:</strong> ${usd(r.monthlyProfit)}</p>
