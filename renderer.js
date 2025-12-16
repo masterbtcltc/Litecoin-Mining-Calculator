@@ -53,13 +53,15 @@ function calc(p){
   const yearlyPowerCost = powerCost * 365.25;
   const monthlyPowerCost = yearlyPowerCost / 12;
   const revenue = netLtc * p.priceLTC + netDoge * p.priceDOGE;
+  const yearlyRevenue = revenue * 365.25;
+  const monthlyRevenue = yearlyRevenue / 12;
   const profit = revenue - powerCost;
   const yearlyProfit = profit * 365.25;
   const monthlyProfit = yearlyProfit / 12;
   const payout = p.coin === "LTC" ? revenue / p.priceLTC : revenue / p.priceDOGE;
   let breakEven = NaN;
   if (p.cost > 0 && profit > 0) breakEven = (p.cost * qty) / profit;
-  return {netLtc,netDoge,powerCost,monthlyPowerCost,yearlyPowerCost,revenue,profit,monthlyProfit,yearlyProfit,payout,breakEven,qty};
+  return {netLtc,netDoge,powerCost,monthlyPowerCost,yearlyPowerCost,revenue,monthlyRevenue,yearlyRevenue,profit,monthlyProfit,yearlyProfit,payout,breakEven,qty};
 }
 
 document.addEventListener("DOMContentLoaded",()=>{
@@ -108,6 +110,8 @@ document.addEventListener("DOMContentLoaded",()=>{
       <p><strong>Monthly Power Cost:</strong> ${usd(r.monthlyPowerCost)}</p>
       <p><strong>Yearly Power Cost:</strong> ${usd(r.yearlyPowerCost)}</p>
       <p><strong>Daily Revenue:</strong> ${usd(r.revenue)}</p>
+      <p><strong>Monthly Revenue:</strong> ${usd(r.monthlyRevenue)}</p>
+      <p><strong>Yearly Revenue:</strong> ${usd(r.yearlyRevenue)}</p>
       <p><strong>Daily Profit:</strong> ${usd(r.profit)}</p>
       <p><strong>Monthly Profit:</strong> ${usd(r.monthlyProfit)}</p>
       <p><strong>Yearly Profit:</strong> ${usd(r.yearlyProfit)}</p>
